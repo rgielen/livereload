@@ -11,5 +11,15 @@
 
     <artifactId>livereload-server</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-websockets-jsr</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>
