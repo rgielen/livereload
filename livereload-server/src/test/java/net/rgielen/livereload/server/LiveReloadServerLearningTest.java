@@ -7,9 +7,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -20,34 +17,19 @@ class LiveReloadServerLearningTest {
 
     private static Object monitor = new Object();
 
-    LiveReloadServer server;
+    private LiveReloadServer server;
     private ExecutorService pool;
     private OkHttpClient client;
 
     @BeforeEach
-    void startServer() throws InterruptedException, MalformedURLException {
+    void startServer() {
         client = new OkHttpClient();
         server = new LiveReloadServer();
         pool = Executors.newFixedThreadPool(1);
         pool.execute(() -> {
             server.server.start();
         });
-
-        boolean retry = true;
-        while (retry) {
-            try {
-                HttpURLConnection urlConn = (HttpURLConnection) server.baseUrl().openConnection();
-                urlConn.connect();
-                urlConn.disconnect();
-                retry = false;
-            } catch (IOException e) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e1) {
-                    // just wait
-                }
-            }
-        }
+        server.waitUntilReady();
     }
 
     @Test

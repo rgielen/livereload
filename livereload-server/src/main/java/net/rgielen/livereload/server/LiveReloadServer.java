@@ -3,6 +3,8 @@ package net.rgielen.livereload.server;
 import io.undertow.Undertow;
 import io.undertow.util.Headers;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -40,6 +42,18 @@ public class LiveReloadServer {
         }
     }
 
+    boolean isReady() {
+        try {
+            HttpURLConnection urlConn = (HttpURLConnection) baseUrl().openConnection();
+            urlConn.connect();
+            urlConn.disconnect();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+
+    }
+
     Undertow createServer(int port) {
         return Undertow.builder()
                 .addHttpListener(port, "localhost", exchange -> {
@@ -50,4 +64,13 @@ public class LiveReloadServer {
     }
 
 
+    void waitUntilReady() {
+        while (!isReady()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e1) {
+                // just wait
+            }
+        }
+    }
 }
