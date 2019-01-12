@@ -3,6 +3,9 @@ package net.rgielen.livereload.server;
 import io.undertow.Undertow;
 import io.undertow.util.Headers;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * LiveReloadServer.
  *
@@ -23,6 +26,18 @@ public class LiveReloadServer {
     public LiveReloadServer(int port) {
         this.port = port;
         this.server = createServer(port);
+    }
+
+    public String baseUrlString() {
+        return "http://localhost:" + port;
+    }
+
+    public URL baseUrl() {
+        try {
+            return new URL(baseUrlString());
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     Undertow createServer(int port) {

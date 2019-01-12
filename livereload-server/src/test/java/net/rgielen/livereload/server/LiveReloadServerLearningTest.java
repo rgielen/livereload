@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,9 +35,8 @@ class LiveReloadServerLearningTest {
 
         boolean retry = true;
         while (retry) {
-            URL url = new URL("http://localhost:" + server.port);
             try {
-                HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+                HttpURLConnection urlConn = (HttpURLConnection) server.baseUrl().openConnection();
                 urlConn.connect();
                 urlConn.disconnect();
                 retry = false;
