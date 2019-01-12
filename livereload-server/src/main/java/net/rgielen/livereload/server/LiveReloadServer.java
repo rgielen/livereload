@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * LiveReloadServer.
@@ -16,10 +19,11 @@ import java.net.URL;
 public class LiveReloadServer {
 
     public static final int LIVEREOLAD_DEFAULT_PORT = 35729;
+    private static Object monitor = new Object();
 
     final int port;
     Undertow server;
-
+    private ExecutorService pool;
 
     public LiveReloadServer() {
         this(LIVEREOLAD_DEFAULT_PORT);
@@ -63,7 +67,6 @@ public class LiveReloadServer {
                 .build();
     }
 
-
     void waitUntilReady() {
         while (!isReady()) {
             try {
@@ -71,6 +74,23 @@ public class LiveReloadServer {
             } catch (InterruptedException e1) {
                 // just wait
             }
+        }
+    }
+
+    public void start() {
+        pool = Executors.newFixedThreadPool(1);
+        pool.execute(() -> {
+            server.start();
+        });
+        waitUntilReady();
+    }
+
+    public void shutdown() throws InterruptedException {
+        synchronized (monitor) {
+            server.stop();
+            pool.shutdown();
+            pool.awaitTermination(1, TimeUnit.MINUTES);
+            System.out.println("Server shutdown completed");
         }
     }
 }

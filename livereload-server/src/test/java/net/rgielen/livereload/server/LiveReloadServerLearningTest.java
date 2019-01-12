@@ -7,29 +7,18 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LiveReloadServerLearningTest {
 
-    private static Object monitor = new Object();
-
     private LiveReloadServer server;
-    private ExecutorService pool;
     private OkHttpClient client;
 
     @BeforeEach
     void startServer() {
         client = new OkHttpClient();
         server = new LiveReloadServer();
-        pool = Executors.newFixedThreadPool(1);
-        pool.execute(() -> {
-            server.server.start();
-        });
-        server.waitUntilReady();
+        server.start();
     }
 
     @Test
@@ -41,12 +30,7 @@ class LiveReloadServerLearningTest {
 
     @AfterEach
     void shutdown() throws InterruptedException {
-        synchronized (monitor) {
-            server.server.stop();
-            pool.shutdown();
-            pool.awaitTermination(1, TimeUnit.MINUTES);
-            System.out.println("Server shutdown completed");
-        }
+        server.shutdown();
     }
 
 }
