@@ -18,12 +18,12 @@ class LiveReloadServerLearningTest {
     void startServer() {
         client = new OkHttpClient();
         server = new LiveReloadServer();
-        server.start();
+        server.startAndWait();
     }
 
     @Test
     public void createAndStartServerInNewThread() throws Exception {
-        final Request request = new Request.Builder().url("http://localhost:" + server.port + "").get().build();
+        final Request request = new Request.Builder().url(server.baseUrlString()).get().build();
         final Response response = client.newCall(request).execute();
         assertThat(response.body().string()).isEqualTo("Hello World!");
     }

@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * LiveReloadServer.
@@ -19,10 +20,13 @@ import java.util.concurrent.TimeUnit;
 public class LiveReloadServer {
 
     public static final int LIVEREOLAD_DEFAULT_PORT = 35729;
-    private static Object monitor = new Object();
 
-    final int port;
-    Undertow server;
+    private final Object monitor = new Object();
+    private final AtomicBoolean exceptionalExit = new AtomicBoolean(false);
+
+    public final int port;
+    private final Undertow server;
+
     private ExecutorService pool;
 
     public LiveReloadServer() {
@@ -46,19 +50,22 @@ public class LiveReloadServer {
         }
     }
 
-    boolean isReady() {
+    public boolean isReady() {
         try {
-            HttpURLConnection urlConn = (HttpURLConnection) baseUrl().openConnection();
-            urlConn.connect();
-            urlConn.disconnect();
+            HttpURLConnection connection = (HttpURLConnection) baseUrl().openConnection();
+            connection.connect();
+            connection.disconnect();
             return true;
         } catch (IOException e) {
             return false;
         }
-
     }
 
-    Undertow createServer(int port) {
+    public boolean isFailed() {
+        return exceptionalExit.get();
+    }
+
+    private Undertow createServer(int port) {
         return Undertow.builder()
                 .addHttpListener(port, "localhost", exchange -> {
                     exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, "text/plain");
@@ -67,22 +74,27 @@ public class LiveReloadServer {
                 .build();
     }
 
-    void waitUntilReady() {
-        while (!isReady()) {
+    public void waitUntilReady() {
+        while (! (isReady() || isFailed())) {
             try {
                 Thread.sleep(50);
-            } catch (InterruptedException e1) {
-                // just wait
+            } catch (InterruptedException e) {
+                throw new IllegalStateException("waitUntilReady was interrupted", e);
             }
         }
     }
 
     public void start() {
-        pool = Executors.newFixedThreadPool(1);
-        pool.execute(() -> {
-            server.start();
-        });
-        waitUntilReady();
+        synchronized (monitor) {
+            startThreaded();
+        }
+    }
+
+    public void startAndWait() {
+        synchronized (monitor) {
+            startThreaded();
+            waitUntilReady();
+        }
     }
 
     public void shutdown() throws InterruptedException {
@@ -92,5 +104,16 @@ public class LiveReloadServer {
             pool.awaitTermination(1, TimeUnit.MINUTES);
             System.out.println("Server shutdown completed");
         }
+    }
+
+    private void startThreaded() {
+        pool = Executors.newFixedThreadPool(1);
+        pool.execute(() -> {
+            try {
+                server.start();
+            } catch (Exception e) {
+                exceptionalExit.set(true);
+            }
+        });
     }
 }
