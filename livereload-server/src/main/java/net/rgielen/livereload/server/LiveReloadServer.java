@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.undertow.Handlers.routing;
+
 /**
  * LiveReloadServer.
  *
@@ -67,15 +69,21 @@ public class LiveReloadServer {
 
     private Undertow createServer(int port) {
         return Undertow.builder()
-                .addHttpListener(port, "localhost", exchange -> {
-                    exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, "text/plain");
-                    exchange.getResponseSender().send("Hello World!");
-                })
+                .addHttpListener(port, "0.0.0.0")
+                .setHandler(
+                        routing()
+                                .get("/",
+                                        exchange -> {
+                                            exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, "text/plain");
+                                            exchange.getResponseSender().send("Hello World!");
+                                        })
+                                //.setFallbackHandler()
+                )
                 .build();
     }
 
     public void waitUntilReady() {
-        while (! (isReady() || isFailed())) {
+        while (!(isReady() || isFailed())) {
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
