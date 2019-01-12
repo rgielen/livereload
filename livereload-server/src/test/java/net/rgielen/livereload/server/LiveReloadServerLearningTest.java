@@ -41,9 +41,13 @@ class LiveReloadServerLearningTest {
                 urlConn.disconnect();
                 retry = false;
             } catch (IOException e) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e1) {
+                    // just wait
+                }
             }
         }
-        //Thread.sleep(1000);
     }
 
     @Test
