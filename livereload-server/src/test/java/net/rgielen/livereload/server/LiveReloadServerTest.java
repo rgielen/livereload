@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class LiveReloadServerLearningTest {
+class LiveReloadServerTest {
 
     private LiveReloadServer server;
     private OkHttpClient client;
@@ -22,10 +22,10 @@ class LiveReloadServerLearningTest {
     }
 
     @Test
-    public void createAndStartServerInNewThread() throws Exception {
+    public void startServerAndVerifyHelloMessageIsServed() throws Exception {
         final Request request = new Request.Builder().url(server.baseUrlString()).get().build();
         final Response response = client.newCall(request).execute();
-        assertThat(response.body().string()).isEqualTo("Hello World!");
+        assertThat(response.body().string()).isEqualTo(LiveReloadServer.SERVER_HELLO_MESSAGE);
     }
 
     @AfterEach

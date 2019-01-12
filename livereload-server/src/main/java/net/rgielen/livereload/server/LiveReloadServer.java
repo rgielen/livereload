@@ -22,6 +22,7 @@ import static io.undertow.Handlers.routing;
 public class LiveReloadServer {
 
     public static final int LIVEREOLAD_DEFAULT_PORT = 35729;
+    static final String SERVER_HELLO_MESSAGE = "Livereload Server ready - https://github.com/rgielen/livereload";
 
     private final Object monitor = new Object();
     private final AtomicBoolean exceptionalExit = new AtomicBoolean(false);
@@ -75,7 +76,7 @@ public class LiveReloadServer {
                                 .get("/",
                                         exchange -> {
                                             exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, "text/plain");
-                                            exchange.getResponseSender().send("Hello World!");
+                                            exchange.getResponseSender().send(SERVER_HELLO_MESSAGE);
                                         })
                                 //.setFallbackHandler()
                 )
